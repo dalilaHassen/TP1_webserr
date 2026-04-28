@@ -12,11 +12,6 @@ import java.util.Map;
 
 /**
  * Implémentation RMI du service de gestion des stocks — version MySQL/JDBC.
- *
- * Les données sont persistées dans MySQL/MariaDB via des DAOs JDBC.
- * Les opérations critiques (sortie, transfert) utilisent des transactions
- * explicites avec verrou de ligne (SELECT … FOR UPDATE) pour garantir
- * la cohérence en environnement multi-clients.
  */
 public class GestionStocksImpl extends UnicastRemoteObject implements IGestionStocks {
 
@@ -51,7 +46,7 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
                 throw new RemoteException("Produit déjà existant : " + produit.getId());
             produitDAO.inserer(produit);
             log("PRODUIT AJOUTÉ", produit.toString());
-        } catch (SQLException e) { jdbcErreur(e); }
+        } catch (SQLException e) { throw jdbcErreur(e); }
     }
 
     @Override
@@ -79,7 +74,7 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
                 throw new RemoteException("Entrepôt déjà existant : " + id);
             entrepotDAO.inserer(id, nom, ville);
             log("ENTREPÔT AJOUTÉ", id + " → " + nom + " (" + ville + ")");
-        } catch (SQLException e) { jdbcErreur(e); }
+        } catch (SQLException e) { throw jdbcErreur(e); }
     }
 
     @Override
@@ -127,7 +122,6 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
             conn = dbManager.getConnection();
             conn.setAutoCommit(false);
 
-            // Verrou de ligne pour éviter les conditions de course
             int actuel = getStockForUpdate(conn, idEntrepot, idProduit);
             if (actuel < quantite)
                 throw new RemoteException(
@@ -160,7 +154,9 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
             validerExistenceEntrepot(idDest);
             validerExistenceProduit(idProduit);
             validerQuantitePositive(quantite);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
 
         Connection conn = null;
         try {
@@ -202,7 +198,9 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
             validerExistenceEntrepot(idEntrepot);
             validerExistenceProduit(idProduit);
             return stockDAO.getQuantite(idEntrepot, idProduit);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     @Override
@@ -210,7 +208,9 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
         try {
             validerExistenceEntrepot(idEntrepot);
             return stockDAO.getStocksEntrepot(idEntrepot);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     @Override
@@ -218,14 +218,18 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
         try {
             validerExistenceProduit(idProduit);
             return stockDAO.getStocksProduitTousEntrepots(idProduit);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     @Override
     public List<String> alertesStockBas(int seuilMinimal) throws RemoteException {
         try {
             return stockDAO.getProduitsSousSeuilGlobal(seuilMinimal);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     // ═══════════════════ HISTORIQUE ══════════════════════════
@@ -235,7 +239,9 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
         try {
             validerExistenceEntrepot(idEntrepot);
             return mouvementDAO.listerParEntrepot(idEntrepot);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     @Override
@@ -243,12 +249,39 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
         try {
             validerExistenceProduit(idProduit);
             return mouvementDAO.listerParProduit(idProduit);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
+    }
+
+    // ═══════════════════ MÉTHODES POUR HTTP BRIDGE ═══════════════════
+    // Ces méthodes sont appelées par HttpBridge (non RMI)
+
+    public void modifierProduit(String id, String nom, String categorie, double prixUnitaire)
+            throws RemoteException {
+        try {
+            if (!produitDAO.existe(id))
+                throw new RemoteException("Produit inconnu : " + id);
+            produitDAO.modifier(id, nom, categorie, prixUnitaire);
+            log("PRODUIT MODIFIÉ", id + " → " + nom);
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
+    }
+
+    public void supprimerProduit(String id) throws RemoteException {
+        try {
+            if (!produitDAO.existe(id))
+                throw new RemoteException("Produit inconnu : " + id);
+            produitDAO.supprimer(id);
+            log("PRODUIT SUPPRIMÉ", id);
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     // ═══════════════════ UTILITAIRES PRIVÉS ══════════════════
 
-    /** Verrou de ligne pour les lectures précédant une écriture. */
     private int getStockForUpdate(Connection conn,
                                   String idEntrepot, String idProduit) throws SQLException {
         String sql = "SELECT quantite FROM stocks " +
@@ -268,7 +301,9 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
             validerExistenceEntrepot(idEntrepot);
             validerExistenceProduit(idProduit);
             validerQuantitePositive(quantite);
-        } catch (SQLException e) { throw jdbcErreur(e); }
+        } catch (SQLException e) {
+            throw jdbcErreur(e);
+        }
     }
 
     private void validerExistenceEntrepot(String id) throws SQLException, RemoteException {
@@ -287,13 +322,19 @@ public class GestionStocksImpl extends UnicastRemoteObject implements IGestionSt
     }
 
     private void rollback(Connection conn) {
-        if (conn != null) try { conn.rollback(); }
-        catch (SQLException ignored) {}
+        if (conn != null) {
+            try {
+                conn.rollback();
+            } catch (SQLException ignored) {}
+        }
     }
 
     private void resetAutoCommit(Connection conn) {
-        if (conn != null) try { conn.setAutoCommit(true); }
-        catch (SQLException ignored) {}
+        if (conn != null) {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException ignored) {}
+        }
     }
 
     private RemoteException jdbcErreur(SQLException e) throws RemoteException {

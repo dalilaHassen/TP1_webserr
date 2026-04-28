@@ -1,593 +1,551 @@
 <template>
-  <div class="profile-container">
-    <!-- Loading and Error States -->
-    <div v-if="loading" class="status-message loading">
-      <div class="spinner"></div>
-      <p>Loading...</p>
-    </div>
+  <div class="edit-page">
 
-    <div v-else-if="error" class="status-message error">
-      <span class="icon">⚠️</span>
-      <p>{{ error }}</p>
-    </div>
-
-    <div v-else class="profile-content">
-      <!-- Header Section -->
-      <header class="profile-header">
-        <div class="logo-container">
-          <img :src="company.Logo" alt="Company Logo" class="logo" v-if="company.Logo" />
-          <div v-else class="logo-placeholder">
-            {{ company.companyName?.[0]?.toUpperCase() || 'C' }}
-          </div>
-        </div>
-        <h1 class="company-name">{{ company.companyName }}</h1>
-        <p class="legal-status">{{ company.legalStatus }}</p>
-      </header>
-
-      <!-- Main Form Content -->
-      <div class="form-sections">
-        <!-- Company Information -->
-        <section class="form-section">
-          <h2>Company Information</h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>
-                <span class="icon">🏢</span>
-                Company Name
-              </label>
-              <input 
-                v-model="company.companyName"
-                type="text"
-                placeholder="Enter company name"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>
-                <span class="icon">⚖️</span>
-                Legal Status
-              </label>
-              <select v-model="company.legalStatus">
-                <option value="" disabled>Select legal status</option>
-                <option value="SARL">SARL</option>
-                <option value="SNC">SNC</option>
-                <option value="SUARL">SUARL</option>
-                <option value="SA">SA</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>
-                <span class="icon">🆔</span>
-                Tax Registration Number
-              </label>
-              <input 
-                v-model="company.taxRegistrationNumber"
-                type="text"
-                placeholder="Enter tax registration number"
-              />
-            </div>
-
-            <div class="form-group full-width">
-              <label>
-                <span class="icon">📍</span>
-                Registered Office Address
-              </label>
-              <input 
-                v-model="company.registeredOfficeAddress"
-                type="text"
-                placeholder="Enter registered office address"
-              />
-            </div>
-          </div>
-        </section>
-
-        <!-- Contact Information -->
-        <section class="form-section">
-          <h2>Contact Information</h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>
-                <span class="icon">✉️</span>
-                Email Address
-              </label>
-              <input 
-                v-model="company.email"
-                type="email"
-                placeholder="Enter email address"
-                readonly
-              />
-            </div>
-
-            <div class="form-group">
-              <label>
-                <span class="icon">📞</span>
-                Phone Number
-              </label>
-              <input 
-                v-model="company.phoneNumber"
-                type="tel"
-                placeholder="Enter phone number"
-                readonly
-              />
-            </div>
-          </div>
-        </section>
-
-        <!-- Password Change -->
-        <section class="form-section">
-          <h2>Change Password</h2>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>
-                <span class="icon">🔑</span>
-                Current Password
-              </label>
-              <div class="password-input">
-                <input 
-                  v-model="oldPassword"
-                  :type="showOldPassword ? 'text' : 'password'"
-                  placeholder="Enter current password"
-                />
-                <button 
-                  type="button"
-                  class="password-toggle"
-                  @click="showOldPassword = !showOldPassword"
-                >
-                  {{ showOldPassword ? '👁️' : '👁️‍🗨️' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>
-                <span class="icon">🔒</span>
-                New Password
-              </label>
-              <div class="password-input">
-                <input 
-                  v-model="newPassword"
-                  :type="showNewPassword ? 'text' : 'password'"
-                  placeholder="Enter new password"
-                />
-                <button 
-                  type="button"
-                  class="password-toggle"
-                  @click="showNewPassword = !showNewPassword"
-                >
-                  {{ showNewPassword ? '👁️' : '👁️‍🗨️' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>
-                <span class="icon">✅</span>
-                Confirm Password
-              </label>
-              <div class="password-input">
-                <input 
-                  v-model="confirmPassword"
-                  :type="showConfirmPassword ? 'text' : 'password'"
-                  placeholder="Confirm new password"
-                />
-                <button 
-                  type="button"
-                  class="password-toggle"
-                  @click="showConfirmPassword = !showConfirmPassword"
-                >
-                  {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Action Buttons -->
-        <div class="form-actions">
-          <button class="btn btn-save" @click="saveChanges">
-            <span class="icon">💾</span>
-            Save Changes
-          </button>
-          <button class="btn btn-cancel" @click="resetForm">
-            <span class="icon">❌</span>
-            Cancel
-          </button>
+    <!-- ── HEADER ── -->
+    <div class="edit-header">
+      <div class="edit-header-left">
+        <router-link to="/Profile" class="back-btn">
+          <i class="fas fa-arrow-left"></i>
+        </router-link>
+        <div class="edit-title-wrap">
+          <h1 class="edit-title">Modifier le profil</h1>
+          <p class="edit-sub">Mettez à jour vos informations personnelles</p>
         </div>
       </div>
+      <div class="edit-avatar-wrap">
+        <div class="edit-avatar">{{ initials }}</div>
+        <div class="edit-online"></div>
+      </div>
     </div>
+
+    <!-- ── ALERTS ── -->
+    <transition name="fade">
+      <div v-if="successMsg" class="alert success">
+        <i class="fas fa-check-circle"></i> {{ successMsg }}
+      </div>
+    </transition>
+    <transition name="fade">
+      <div v-if="errorMsg" class="alert error">
+        <i class="fas fa-exclamation-circle"></i> {{ errorMsg }}
+      </div>
+    </transition>
+
+    <!-- ── GRID ── -->
+    <div class="edit-grid">
+
+      <!-- Informations personnelles -->
+      <div class="edit-card">
+        <div class="edit-card-head">
+          <h2><i class="fas fa-user"></i> Informations personnelles</h2>
+        </div>
+        <div class="edit-card-body">
+
+          <div class="field-group">
+            <label class="field-label">
+              <i class="fas fa-user-circle"></i> Nom d'utilisateur
+            </label>
+            <div class="field-input-wrap">
+              <input
+                  v-model="form.username"
+                  type="text"
+                  class="field-input"
+                  placeholder="Entrez votre nom d'utilisateur"
+                  :class="{ error: errors.username }"
+              />
+              <i class="fas fa-pencil-alt field-icon"></i>
+            </div>
+            <span v-if="errors.username" class="field-error">{{ errors.username }}</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <i class="fas fa-id-badge"></i> Rôle
+            </label>
+            <div class="field-input-wrap">
+              <input
+                  :value="form.role"
+                  type="text"
+                  class="field-input readonly"
+                  readonly
+              />
+              <i class="fas fa-lock field-icon"></i>
+            </div>
+            <span class="field-hint">Le rôle ne peut pas être modifié.</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Sécurité -->
+      <div class="edit-card">
+        <div class="edit-card-head">
+          <h2><i class="fas fa-lock"></i> Changer le mot de passe</h2>
+        </div>
+        <div class="edit-card-body">
+
+          <div class="field-group">
+            <label class="field-label">
+              <i class="fas fa-key"></i> Mot de passe actuel
+            </label>
+            <div class="field-input-wrap">
+              <input
+                  v-model="form.currentPassword"
+                  :type="showCurrent ? 'text' : 'password'"
+                  class="field-input"
+                  placeholder="••••••••"
+                  :class="{ error: errors.currentPassword }"
+              />
+              <i
+                  class="field-icon toggle-eye"
+                  :class="showCurrent ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                  @click="showCurrent = !showCurrent"
+              ></i>
+            </div>
+            <span v-if="errors.currentPassword" class="field-error">{{ errors.currentPassword }}</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <i class="fas fa-lock"></i> Nouveau mot de passe
+            </label>
+            <div class="field-input-wrap">
+              <input
+                  v-model="form.newPassword"
+                  :type="showNew ? 'text' : 'password'"
+                  class="field-input"
+                  placeholder="Minimum 6 caractères"
+                  :class="{ error: errors.newPassword }"
+              />
+              <i
+                  class="field-icon toggle-eye"
+                  :class="showNew ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                  @click="showNew = !showNew"
+              ></i>
+            </div>
+            <span v-if="errors.newPassword" class="field-error">{{ errors.newPassword }}</span>
+
+            <!-- Strength bar -->
+            <div v-if="form.newPassword" class="strength-wrap">
+              <div class="strength-bar">
+                <div class="strength-fill" :class="strengthClass" :style="{ width: strengthPct + '%' }"></div>
+              </div>
+              <span class="strength-label" :class="strengthClass">{{ strengthLabel }}</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">
+              <i class="fas fa-check-double"></i> Confirmer le nouveau mot de passe
+            </label>
+            <div class="field-input-wrap">
+              <input
+                  v-model="form.confirmPassword"
+                  :type="showConfirm ? 'text' : 'password'"
+                  class="field-input"
+                  placeholder="Répétez le mot de passe"
+                  :class="{ error: errors.confirmPassword }"
+              />
+              <i
+                  class="field-icon toggle-eye"
+                  :class="showConfirm ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                  @click="showConfirm = !showConfirm"
+              ></i>
+            </div>
+            <span v-if="errors.confirmPassword" class="field-error">{{ errors.confirmPassword }}</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── ACTIONS ── -->
+    <div class="edit-actions">
+      <router-link to="/Profile" class="btn-cancel">
+        <i class="fas fa-times"></i> Annuler
+      </router-link>
+      <button class="btn-save" :disabled="saving" @click="handleSave">
+        <i v-if="saving" class="fas fa-spinner fa-spin"></i>
+        <i v-else class="fas fa-save"></i>
+        {{ saving ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+      </button>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-// Company data
-const company = ref({
-  Logo: '',
-  companyName: '',
-  email: '',
-  phoneNumber: '',
-  registeredOfficeAddress: '',
-  legalStatus: '',
-  taxRegistrationNumber: '',
-});
+const router = useRouter()
 
-// Password change data
-const oldPassword = ref('');
-const newPassword = ref('');
-const confirmPassword = ref('');
+const username = ref(localStorage.getItem('username') || 'Utilisateur')
 
-// UI states
-const error = ref('');
-const loading = ref(false);
-const showOldPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
+const form = ref({
+  username: username.value,
+  role: 'CHEF_ENTREPOT',
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+})
 
-// API configuration
-const api = axios.create({
-  baseURL: 'http://localhost:3000/api',
-  headers: {
-    'Content-Type': 'application/json'
+const errors       = ref<Record<string, string>>({})
+const successMsg   = ref('')
+const errorMsg     = ref('')
+const saving       = ref(false)
+const showCurrent  = ref(false)
+const showNew      = ref(false)
+const showConfirm  = ref(false)
+
+const initials = computed(() => {
+  const u = form.value.username
+  return u.length >= 2 ? u.slice(0, 2).toUpperCase() : u.toUpperCase()
+})
+
+/* ── Password strength ── */
+const strengthPct = computed(() => {
+  const p = form.value.newPassword
+  if (!p) return 0
+  let s = 0
+  if (p.length >= 6)  s += 25
+  if (p.length >= 10) s += 25
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) s += 25
+  if (/[0-9!@#$%^&*]/.test(p)) s += 25
+  return s
+})
+const strengthClass = computed(() => {
+  const v = strengthPct.value
+  if (v <= 25) return 'weak'
+  if (v <= 50) return 'fair'
+  if (v <= 75) return 'good'
+  return 'strong'
+})
+const strengthLabel = computed(() => {
+  const map: Record<string, string> = { weak: 'Faible', fair: 'Moyen', good: 'Bon', strong: 'Fort' }
+  return map[strengthClass.value]
+})
+
+/* ── Validation ── */
+function validate() {
+  errors.value = {}
+  if (!form.value.username.trim()) {
+    errors.value.username = "Le nom d'utilisateur est requis."
   }
-});
-
-// Token interceptor
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const changingPwd = form.value.currentPassword || form.value.newPassword || form.value.confirmPassword
+  if (changingPwd) {
+    if (!form.value.currentPassword) {
+      errors.value.currentPassword = 'Entrez votre mot de passe actuel.'
+    }
+    if (!form.value.newPassword || form.value.newPassword.length < 6) {
+      errors.value.newPassword = 'Le nouveau mot de passe doit contenir au moins 6 caractères.'
+    }
+    if (form.value.newPassword !== form.value.confirmPassword) {
+      errors.value.confirmPassword = 'Les mots de passe ne correspondent pas.'
+    }
   }
-  return config;
-});
+  return Object.keys(errors.value).length === 0
+}
 
-// Fetch company profile
-const fetchCompanyProfile = async () => {
+/* ── Save ── */
+async function handleSave() {
+  successMsg.value = ''
+  errorMsg.value   = ''
+  if (!validate()) return
+
+  saving.value = true
   try {
-    loading.value = true;
-    error.value = '';
-    
-    const response = await api.get('/users/me');
-    if (!response.data.company) {
-      throw new Error('Company data not found');
+    // ── Update username ──
+    if (form.value.username !== username.value) {
+      const res = await fetch('http://localhost:8080/api/utilisateurs/username', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: form.value.username }),
+      })
+      if (!res.ok) throw new Error('Erreur lors de la mise à jour du nom.')
+      localStorage.setItem('username', form.value.username)
+      username.value = form.value.username
     }
-    
-    company.value = response.data.company;
-  } catch (err) {
-    handleError(err);
+
+    // ── Update password ──
+    const changingPwd = form.value.currentPassword && form.value.newPassword
+    if (changingPwd) {
+      const res = await fetch('http://localhost:8080/api/utilisateurs/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: form.value.currentPassword,
+          newPassword:     form.value.newPassword,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Mot de passe actuel incorrect.')
+      }
+      form.value.currentPassword = ''
+      form.value.newPassword     = ''
+      form.value.confirmPassword = ''
+    }
+
+    successMsg.value = 'Profil mis à jour avec succès !'
+    setTimeout(() => router.push('/Profile'), 1500)
+  } catch (e: any) {
+    errorMsg.value = e.message || 'Une erreur est survenue.'
   } finally {
-    loading.value = false;
+    saving.value = false
   }
-};
-
-// Save changes
-const saveChanges = async () => {
-  try {
-    loading.value = true;
-    error.value = '';
-
-    const data: any = {
-      companyName: company.value.companyName,
-      registeredOfficeAddress: company.value.registeredOfficeAddress,
-      legalStatus: company.value.legalStatus,
-      taxRegistrationNumber: company.value.taxRegistrationNumber
-    };
-
-    if (oldPassword.value || newPassword.value || confirmPassword.value) {
-      if (!validatePasswordChange()) return;
-      
-      data.oldPassword = oldPassword.value;
-      data.newPassword = newPassword.value;
-    }
-
-    const response = await api.put('/Profile/modify/me', data);
-    alert('Profile updated successfully!');
-    resetForm();
-    
-  } catch (err) {
-    handleError(err);
-  } finally {
-    loading.value = false;
-  }
-};
-
-// Validate password change
-const validatePasswordChange = () => {
-  if (!oldPassword.value) {
-    error.value = 'Please enter your current password';
-    return false;
-  }
-  if (newPassword.value.length < 8) {
-    error.value = 'New password must be at least 8 characters long';
-    return false;
-  }
-  if (newPassword.value !== confirmPassword.value) {
-    error.value = 'New password and confirmation do not match';
-    return false;
-  }
-  return true;
-};
-
-// Reset form
-const resetForm = () => {
-  oldPassword.value = '';
-  newPassword.value = '';
-  confirmPassword.value = '';
-  fetchCompanyProfile();
-};
-
-// Error handling
-const handleError = (err: unknown) => {
-  if (axios.isAxiosError(err)) {
-    error.value = err.response?.data?.error || err.message;
-    if (err.response?.status === 401) {
-      localStorage.removeItem('accessToken');
-      window.location.href = '/login';
-    }
-  } else if (err instanceof Error) {
-    error.value = err.message;
-  } else {
-    error.value = 'An unknown error occurred';
-  }
-  console.error('Error:', err);
-};
-
-// Initialize
-onMounted(fetchCompanyProfile);
+}
 </script>
 
 <style scoped>
-.profile-container {
-  max-width: 1200px;
-  margin: 2rem auto;
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap');
+
+.edit-page {
   padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #f0f4f8;
+  font-family: 'DM Sans', sans-serif;
 }
 
-/* Status Messages */
-.status-message {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  text-align: center;
+/* ── HEADER ── */
+.edit-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  border-radius: 1.25rem;
+  padding: 2rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.edit-header::before {
+  content: '';
+  position: absolute;
+  right: -3rem; top: -3rem;
+  width: 12rem; height: 12rem;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+}
+
+.edit-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.back-btn {
+  width: 2.75rem; height: 2.75rem;
+  border-radius: .75rem;
+  background: rgba(255,255,255,.15);
+  border: 1.5px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1rem;
+  text-decoration: none;
+  transition: background .2s, transform .2s;
+  flex-shrink: 0; z-index: 1;
+}
+.back-btn:hover {
+  background: rgba(255,255,255,.25);
+  transform: translateX(-2px);
+}
+
+.edit-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 .2rem; letter-spacing: -.03em; }
+.edit-sub   { margin: 0; font-size: .82rem; color: rgba(255,255,255,.7); }
+
+.edit-avatar-wrap { position: relative; flex-shrink: 0; z-index: 1; }
+.edit-avatar {
+  width: 4.5rem; height: 4.5rem;
+  border-radius: 1rem;
+  background: rgba(255,255,255,.2);
+  border: 2px solid rgba(255,255,255,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 700; color: white;
+  letter-spacing: -.05em;
+}
+.edit-online {
+  position: absolute; bottom: -.2rem; right: -.2rem;
+  width: 1rem; height: 1rem;
+  background: #22c55e; border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* ── ALERTS ── */
+.alert {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .9rem 1.25rem;
+  border-radius: .75rem;
+  font-size: .875rem; font-weight: 600;
   margin-bottom: 1rem;
 }
+.alert.success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.alert.error   { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
 
-.status-message.loading {
-  background: rgba(82, 82, 91, 0.1);
-  color: #52525b;
+.fade-enter-active, .fade-leave-active { transition: opacity .3s, transform .3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-6px); }
+
+/* ── GRID ── */
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
-.status-message.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-.spinner {
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #52525b;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Profile Content */
-.profile-content {
+/* ── CARDS ── */
+.edit-card {
   background: white;
   border-radius: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+}
+.edit-card-head {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafbfc;
+}
+.edit-card-head h2 {
+  margin: 0; font-size: .95rem; font-weight: 700; color: #0f172a;
+  display: flex; align-items: center; gap: .5rem;
+}
+.edit-card-head h2 i { color: #64748b; }
+.edit-card-body {
+  padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 1rem;
 }
 
-/* Header */
-.profile-header {
-  background: linear-gradient(135deg, #1f2937, #111827);
-  padding: 2rem;
-  text-align: center;
-  color: white;
-}
+/* ── FIELDS ── */
+.field-group { display: flex; flex-direction: column; gap: .4rem; }
 
-.logo-container {
-  margin-bottom: 1rem;
+.field-label {
+  font-size: .82rem; font-weight: 600; color: #475569;
+  display: flex; align-items: center; gap: .4rem;
 }
+.field-label i { color: #94a3b8; font-size: .75rem; }
 
-.logo, .logo-placeholder {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.field-input-wrap { position: relative; }
+
+.field-input {
+  width: 100%;
+  padding: .7rem 2.5rem .7rem .9rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: .6rem;
+  font-size: .875rem;
+  font-family: 'DM Sans', sans-serif;
+  color: #0f172a;
   background: white;
-  color: #1f2937;
-  font-size: 2.5rem;
-  font-weight: bold;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.company-name {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin: 0;
-  color: white;
-}
-
-.legal-status {
-  font-size: 1.125rem;
-  opacity: 0.9;
-  margin: 0.5rem 0 0;
-  color: #e5e7eb;
-}
-
-/* Form Sections */
-.form-sections {
-  padding: 2rem;
-}
-
-.form-section {
-  background: #f8fafc;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
-}
-
-.form-section:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.form-section h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.75rem;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group.full-width {
-  grid-column: 1 / -1;
-}
-
-.form-group label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #4b5563;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.form-group input,
-.form-group select {
-  padding: 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  color: #1f2937;
-  background: white;
-  transition: all 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus {
+  transition: border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
   outline: none;
-  border-color: #6b7280;
-  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
 }
-
-.form-group input:read-only {
-  background: #f9fafb;
+.field-input::placeholder { color: #cbd5e1; }
+.field-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+.field-input.error {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248,113,113,.12);
+}
+.field-input.readonly {
+  background: #f8fafc;
+  color: #94a3b8;
   cursor: not-allowed;
-  border-style: dashed;
 }
 
-/* Password Input */
-.password-input {
-  position: relative;
-}
-
-.password-toggle {
+.field-icon {
   position: absolute;
-  right: 0.75rem;
-  top: 50%;
+  right: .85rem; top: 50%;
   transform: translateY(-50%);
-  background: none;
-  border: none;
+  color: #cbd5e1;
+  font-size: .8rem;
+  pointer-events: none;
+}
+.toggle-eye {
+  pointer-events: all;
   cursor: pointer;
-  padding: 0;
-  font-size: 1rem;
-  color: #6b7280;
-  transition: color 0.2s;
+  transition: color .2s;
 }
+.toggle-eye:hover { color: #2563eb; }
 
-.password-toggle:hover {
-  color: #4b5563;
+.field-error { font-size: .75rem; color: #dc2626; font-weight: 500; }
+.field-hint  { font-size: .75rem; color: #94a3b8; }
+
+/* ── STRENGTH BAR ── */
+.strength-wrap {
+  display: flex; align-items: center; gap: .75rem;
+  margin-top: .35rem;
 }
+.strength-bar {
+  flex: 1; height: .35rem;
+  background: #e2e8f0; border-radius: 9999px;
+  overflow: hidden;
+}
+.strength-fill {
+  height: 100%; border-radius: 9999px;
+  transition: width .4s ease, background .4s;
+}
+.strength-fill.weak   { background: #f87171; }
+.strength-fill.fair   { background: #fb923c; }
+.strength-fill.good   { background: #facc15; }
+.strength-fill.strong { background: #4ade80; }
+.strength-label {
+  font-size: .72rem; font-weight: 700;
+  min-width: 3rem; text-align: right;
+}
+.strength-label.weak   { color: #dc2626; }
+.strength-label.fair   { color: #ea580c; }
+.strength-label.good   { color: #ca8a04; }
+.strength-label.strong { color: #16a34a; }
 
-/* Form Actions */
-.form-actions {
+/* ── ACTIONS ── */
+.edit-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-}
-
-.btn {
-  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  justify-content: flex-end;
+  gap: .75rem;
 }
+.btn-cancel {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .75rem 1.5rem;
+  background: white; color: #475569;
+  border: 1.5px solid #e2e8f0;
+  border-radius: .75rem; font-size: .875rem; font-weight: 600;
+  text-decoration: none;
+  transition: background .2s, border-color .2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; }
 
 .btn-save {
-  background: #1f2937;
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .75rem 1.75rem;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
   color: white;
-  border: none;
+  border: none; border-radius: .75rem;
+  font-size: .875rem; font-weight: 700;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity .2s, transform .2s, box-shadow .2s;
 }
-
-.btn-save:hover {
-  background: #111827;
+.btn-save:hover:not(:disabled) {
+  opacity: .92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37,99,235,.3);
 }
+.btn-save:disabled { opacity: .6; cursor: not-allowed; }
 
-.btn-cancel {
-  background: white;
-  color: #4b5563;
-  border: 1px solid #e5e7eb;
-}
-
-.btn-cancel:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
-}
-
-/* Responsive Design */
+/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
-  .profile-container {
-    padding: 1rem;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-    justify-content: center;
-  }
+  .edit-page  { padding: 1rem; }
+  .edit-grid  { grid-template-columns: 1fr; }
+  .edit-header { padding: 1.5rem; }
+}
+@media (max-width: 480px) {
+  .edit-actions { flex-direction: column; }
+  .btn-cancel, .btn-save { width: 100%; justify-content: center; }
 }
 </style>

@@ -2,6 +2,7 @@ package server;
 
 import common.IAuthentification;
 import common.IGestionStocks;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.logging.Level;
@@ -13,14 +14,17 @@ public class ServeurRMI {
     public static void main(String[] args) {
         try {
             // Création des objets distants
-            GestionStocksImpl gestionStocks = new GestionStocksImpl();      // ← type concret
-            AuthentificationImpl authentification = new AuthentificationImpl(); // ← type concret
+            // GestionStocksImpl et AuthentificationImpl étendent UnicastRemoteObject :
+            // l'export RMI est déjà fait automatiquement dans leur constructeur.
+            // Ne PAS appeler exportObject() une deuxième fois.
+            GestionStocksImpl    gestionStocks   = new GestionStocksImpl();
+            AuthentificationImpl authentification = new AuthentificationImpl();
 
             // Démarrage du registre RMI sur le port 1099
             Registry registry = LocateRegistry.createRegistry(1099);
 
-            // Publication des objets distants
-            registry.rebind("GestionStocks", gestionStocks);
+            // Publication dans le registre (on passe l'objet directement, pas un stub)
+            registry.rebind("GestionStocks",    gestionStocks);
             registry.rebind("Authentification", authentification);
 
             logger.info("✅ Serveur RMI démarré sur le port 1099");
@@ -28,9 +32,16 @@ public class ServeurRMI {
             logger.info("✅ Service Authentification publié");
 
             // Démarrage du bridge HTTP
-            HttpBridge bridge = new HttpBridge(authentification);
-            bridge.start();
+            try {
+                HttpBridge bridge = new HttpBridge(authentification, gestionStocks);
+                bridge.start();
+                logger.info("✅ HTTP Bridge démarré sur http://localhost:8080");
+            } catch (Exception e) {
+                logger.warning("⚠️ HTTP Bridge non démarré : " + e.getMessage());
+            }
 
+        } catch (RemoteException e) {
+            logger.log(Level.SEVERE, "❌ Erreur RMI lors du démarrage du serveur", e);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "❌ Erreur lors du démarrage du serveur", e);
         }

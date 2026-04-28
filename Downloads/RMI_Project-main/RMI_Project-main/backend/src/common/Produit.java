@@ -8,18 +8,26 @@ public class Produit implements Serializable {
     private final String id;
     private final String nom;
     private final String categorie;
+    private final String description;
+
+
+
     private final double prixUnitaire;
 
-    public Produit(String id, String nom, String categorie, double prixUnitaire) {
+    public Produit(String id, String nom, String categorie,String description, double prixUnitaire) {
         this.id           = id;
         this.nom          = nom;
         this.categorie    = categorie;
+        this.description = description;
+
         this.prixUnitaire = prixUnitaire;
     }
 
     public String getId()           { return id; }
     public String getNom()          { return nom; }
     public String getCategorie()    { return categorie; }
+    public String getDescription()    { return description; }
+
     public double getPrixUnitaire() { return prixUnitaire; }
 
     @Override
